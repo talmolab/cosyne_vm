@@ -420,9 +420,9 @@ if __name__ == "__main__":
 
     # Edit this info in config.py
     project_id = config.PROJECT_ID
-    instance_id = config.INSTANCE_ID
-    database_id = config.DATABASE_ID
-    table_name = config.TABLE_NAME
+    instance_id = config.DB_INSTANCE_ID
+    database_id = config.DB_DATABASE_ID
+    table_name = config.DB_TABLE_NAME
 
     spanner_db = SpannerDatabase.load_database(
         project_id, instance_id, database_id, table_name
