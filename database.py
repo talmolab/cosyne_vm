@@ -331,6 +331,52 @@ class SpannerDatabase:
 
         return unassigned_vms
 
+    def get_assigned_vm_details(self, email: str, table_name=None) -> list:
+        """Gets the hostname, pin, and crd of the assigned VM.
+
+        Args:
+            email: The email of the user to get the assigned VM details for.
+
+        Rasies:
+            ValueError: If the email does not exist in the database
+
+        Returns:
+            A tuple of (hostname, pin, command) for the VM assigned to a user email.
+        """
+
+        if table_name is None:
+            table_name = self.table_name
+
+        query = (
+            f"SELECT * FROM {table_name} "
+            f"WHERE {self.user_email_column} = @user_email"
+        )
+        params = {"user_email": email}
+        param_types = {"user_email": spanner.param_types.STRING}
+        self.query = query
+
+        data = self.execute_sql_and_process_results(
+            query, params=params, param_types=param_types
+        )
+
+        if not data:
+            raise ValueError(f"The email {email} does not exist in the database")
+
+        hostname = data[0][self.hostname_column]
+        pin = data[0][self.pin_column]
+        command = data[0][self.crd_column]
+
+        cnc_logger.pprint(
+            {
+                "VM Details for": email,
+                self.hostname_column: hostname,
+                self.pin_column: pin,
+                self.crd_column: command,
+            }
+        )
+
+        return hostname, pin, command
+
     def assign_vm(self, hostname, user_email, table_name=None):
         """Assigns a VM to a user in the database
 
