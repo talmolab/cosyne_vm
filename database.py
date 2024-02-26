@@ -423,8 +423,11 @@ class SpannerDatabase:
         being used if the inUse column is set to False which is the default value. The
         inUse column is set to True when the VM is running the SLEAP executable.
 
+        Args:
+            table_name: The name of the table in the database to run queries on. Default uses self.table_name.
+
         Returns:
-            The hostnames of the VMs that are not using by any user
+            A list of hostnames of the VMs that are not being used.
         """
 
         if table_name is None:
@@ -439,6 +442,87 @@ class SpannerDatabase:
         cnc_logger.debug(f"Unused VMs: {unused_vms}")
 
         return unused_vms
+
+    def set_in_use_status(self, hostname, in_use: bool, table_name=None):
+        """Updates the inUse status of a given VM in the database.
+
+        The inUse status is set to True when the VM is running the SLEAP executable and
+        False when it is not.
+
+        Args:
+            hostname: The hostname of the VM to update the inUse status for
+            in_use: The boolean value to set the inUse column to.
+            table_name: The name of the table in the database to run queries on. Default uses self.table_name.
+            Default uses self.table_name.
+
+        Raises:
+            ValueError: If the hostname does not exist in the database
+        """
+        if table_name is None:
+            table_name = self.table_name
+
+        # Checks if the hostname exists in the database
+        self.check_vm_exists(hostname, table_name)
+
+        # Update inUse status
+        def update_in_use(transaction):
+            query = (
+                f"UPDATE {table_name} SET {self.in_use_column} = @in_use "
+                f"WHERE {self.hostname_column} = @hostname"
+            )
+            self.query = query
+            row_ct = transaction.execute_update(
+                query,
+                params={"in_use": in_use, "hostname": hostname},
+                param_types={
+                    "in_use": spanner.param_types.BOOL,
+                    "hostname": spanner.param_types.STRING,
+                },
+            )
+            cnc_logger.debug(
+                f"{row_ct} record(s) updated for {self.hostname_column}={hostname} "
+                f"with {self.in_use_column}={in_use}"
+            )
+
+        self.database.run_in_transaction(update_in_use)
+
+    def unassign_vm(self, hostname, table_name=None):
+        """Reset the given VM instance so that it can be assigned to another user.
+
+        Args:
+            hostname: The hostname of the VM to be reset
+
+        Raises:
+            ValueError: If the hostname does not exist in the database
+        """
+
+        if table_name is None:
+            table_name = self.table_name
+
+        # Checks if the hostname exists in the database
+        self.check_vm_exists(hostname, table_name)
+
+        # Reset the VM instance
+        def reset(transaction):
+            query = (
+                f"UPDATE {table_name} SET {self.pin_column} = NULL, "
+                f"{self.crd_column} = NULL, {self.user_email_column} = NULL, "
+                f"{self.in_use_column} = FALSE "
+                f"WHERE {self.hostname_column} = @hostname"
+            )
+            self.query = query
+            row_ct = transaction.execute_update(
+                query,
+                params={"hostname": hostname},
+                param_types={"hostname": spanner.param_types.STRING},
+            )
+            cnc_logger.debug(
+                f"{row_ct} record(s) updated for {self.hostname_column}={hostname} "
+                f"with {self.pin_column}=NULL, {self.crd_column}=NULL, "
+                f"{self.user_email_column}=NULL"
+            )
+
+        self.database.run_in_transaction(reset)
 
 
 # Debug/demo code, not to be used on VM instances or in production
@@ -479,7 +563,6 @@ if __name__ == "__main__":
     vm_hostname = getpass.getuser() + "-vm-1"
     user_email = "spoof@talmolab.org"
     spanner_db.assign_vm(hostname=vm_hostname, user_email=user_email)
-
     spanner_db.get_unassigned_vms()
 
     if assign_vm:
