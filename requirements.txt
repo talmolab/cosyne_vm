@@ -1,7 +1,7 @@
 # These are the requirements for each VM instance
 
-# There may be some overlap between the requirements for vmassign.app and vmassign.manage
-# but it is imperative that the requirements for each VM instance are kept independent
+# There may be some overlap between the requirements for vmassign.app and vmassign.vm.local
+# but it is imperative that the requirements for the VM instances (here) are kept independent
 
 # Google Cloud SDK
 google-cloud-logging

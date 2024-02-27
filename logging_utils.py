@@ -11,10 +11,11 @@ from google.cloud import logging as cloud_logging
 
 class CloudAndConsoleLogger:
 
-    def __init__(self, module_name: str, level=logging.DEBUG):
+    def __init__(self, module_name: str, level=logging.DEBUG, format=None):
         self.name = module_name
 
-        formatter = logging.Formatter("%(module)s[%(levelname)s]: %(message)s")
+        format = format or "%(module)s[%(levelname)s]: %(message)s"
+        formatter = logging.Formatter(format, datefmt="%H:%M:%S")
         self.console_logger = self.setup_console_logging(
             level=level, formatter=formatter
         )
