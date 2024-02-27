@@ -135,10 +135,10 @@ def connect_to_crd(command=None, pin=None, run=True):
             text=True,
         )
 
-        cnc_logger.debug("Output:\n", result.stdout)
+        cnc_logger.debug("Output:\n" + result.stdout)
 
         if result.stderr:
-            cnc_logger.error("Error:", result.stderr)
+            cnc_logger.error("Error:" + result.stderr)
 
 
 if __name__ == "__main__":
