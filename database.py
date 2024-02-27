@@ -533,10 +533,11 @@ if __name__ == "__main__":
     """
 
     import getpass
-    import sys
+    import subprocess
 
     try:
         from vmassign import config
+        from vmassign.vm.local.crd_connect import reconstruct_command
     except Exception as e:
         message = (
             "This script must be run from the main project directory, "
@@ -546,7 +547,7 @@ if __name__ == "__main__":
         )
         cnc_logger.error(f"Error: {e}\n{message}")
 
-    assign_vm = False
+    assign_vm = True
 
     # Edit this info in config.py
     project_id = config.PROJECT_ID
@@ -567,13 +568,13 @@ if __name__ == "__main__":
 
     if assign_vm:
         pin = "723177"
-        code = sys.argv[1]
-        command = (
-            f"DISPLAY= /opt/google/chrome-remote-desktop/start-host --code='{code}' "
-            f"--redirect-url='https://remotedesktop.google.com/_/oauthredirect' --name=$(hostname)"
-        )
+        command = reconstruct_command()
         spanner_db.add_crd_and_pin(vm_hostname, pin, command, override=True)
 
         pin_retrieved, command_retrieved = spanner_db.get_pin_and_crd(vm_hostname)
         assert pin_retrieved == pin
         assert command_retrieved == command
+
+        publish_cmd = f"gcloud pubsub topics publish {vm_hostname} --message='start'"
+        args = publish_cmd.split()
+        subprocess.run(args)
