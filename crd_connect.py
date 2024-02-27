@@ -89,13 +89,11 @@ def generate_pin(pin_length=6):
     return "".join(random.choice("0123456789") for _ in range(pin_length))
 
 
-def connect_to_crd(command=None, pin=None, run=True):
-    """Connects to a remote machine via CRD.
+def reconstruct_command(command: str = None):
+    """Reconstructs the Chrome Remote Desktop command.
 
     Args:
         command (str): The command to connect to the remote machine.
-        pin (str): The PIN to use to connect to the remote machine.
-        run (bool): Whether to run the command or not.
     """
 
     if command is None:
@@ -113,6 +111,21 @@ def connect_to_crd(command=None, pin=None, run=True):
     # Construct the command to connect to the remote machine
     command = construct_command(args)
     cnc_logger.info(f"Command: {command}")
+
+    return command
+
+
+def connect_to_crd(command=None, pin=None, run=True):
+    """Connects to a remote machine via CRD.
+
+    Args:
+        command (str): The command to connect to the remote machine.
+        pin (str): The PIN to use to connect to the remote machine.
+        run (bool): Whether to run the command or not.
+    """
+
+    # Parse the command line arguments
+    command = reconstruct_command(command)
 
     # Generate a sequence of 6 random integers between 0 and 9
     pin = enforce_pin_type(pin)
