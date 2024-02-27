@@ -1,0 +1,15 @@
+# These are the requirements for each VM instance
+
+# There may be some overlap between the requirements for vmassign.app and vmassign.manage
+# but it is imperative that the requirements for each VM instance are kept independent
+
+# Google Cloud SDK
+google-cloud-logging
+google-cloud-pubsub
+google-cloud-spanner==3.42.0
+
+# To find whether SLEAP process is running
+psutil
+
+# To run SLEAP process
+sleap==1.3.3
