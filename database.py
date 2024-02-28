@@ -469,6 +469,7 @@ class SpannerDatabase:
 
         return hostname, pin, command
 
+    # Unused in app or local vm
     def get_unassigned_vms(self, table_name=None) -> list:
         """Gets the hostnames of the unassigned VMs.
 
@@ -493,6 +494,34 @@ class SpannerDatabase:
         cnc_logger.debug(f"Unassigned VMs: {unassigned_vms}")
 
         return unassigned_vms
+
+    def get_unassigned_vms_count(self, table_name=None) -> int:
+        """Gets the number of unassigned VMs.
+
+        Returns:
+            The number of VMs that do not have a user email, pin, or
+            command assigned to them.
+        """
+
+        if table_name is None:
+            table_name = self.table_name
+
+        query = (
+            f"SELECT COUNT({self.hostname_column}) FROM {table_name} "
+            f"WHERE {self.pin_column} IS NULL AND {self.crd_column} IS NULL "
+            f"AND {self.user_email_column} IS NULL"
+        )
+        self.query = query
+
+        # Execute the SQL query
+        with self.database.snapshot() as snapshot:
+            results = snapshot.execute_sql(query)
+
+        rows = list(results)
+        unassigned_vms_count = rows[0][0] if rows else 0
+        cnc_logger.debug(f"Number of unassigned VMs: {unassigned_vms_count}")
+
+        return unassigned_vms_count
 
     # Not used (yet)
     def get_unused_vms(self, table_name=None):
