@@ -161,21 +161,85 @@ class SpannerDatabase:
 
         return data
 
-    @classmethod
-    def load_database(cls, project_id, instance_id, database_id, table_name=None):
-        """Loads an existing database from Cloud Spanner.
+    def vm_exists(self, hostname, table_name=None):
+        """Checks if the given hostname exists in the database
 
         Args:
-            project_id: The ID of the project that owns the Cloud Spanner instance.
-            instance_id: The ID of the Cloud Spanner instance.
-            database_id: The ID of the Cloud Spanner database.
-            table_name: The name of the table in the database (to be used in sql queries).
+            hostname: The hostname to check
 
         Returns:
-            A SpannerDatabase object.
+            True if the hostname exists in the database, False otherwise
         """
 
-        return cls(project_id, instance_id, database_id, table_name)
+        if table_name is None:
+            table_name = self.table_name
+
+        query = f"SELECT * FROM {table_name} WHERE {self.hostname_column} = @hostname"
+        self.query = query
+
+        with self.database.snapshot() as snapshot:
+            result = snapshot.execute_sql(
+                query,
+                params={"hostname": hostname},
+                param_types={"hostname": spanner.param_types.STRING},
+            )
+            for row in result:
+                return True
+
+        return False
+
+    def check_vm_exists(self, hostname, table_name=None):
+        """Checks if the given hostname exists in the database.
+
+        Args:
+            hostname: The hostname to check
+            table_name: The name of the table in the database (to be used in sql queries).
+
+        Raises:
+            ValueError: If the hostname does not exist in the database
+
+        Returns:
+            None
+        """
+
+        if not self.vm_exists(hostname, table_name):
+            raise ValueError(f"The hostname {hostname} does not exist in the database")
+
+    # Used on local VM
+    def get_pin_and_crd(self, hostname, table_name=None):
+        """Gets the pin and command for the given hostname from the database
+
+        Args:
+            hostname: The hostname of the VM to get the pin and command from
+
+        Returns:
+            A tuple containing the pin and command for the given hostname. For example:
+
+            (pin, cmd)
+
+        Raises:
+            ValueError: If the hostname does not exist in the database
+        """
+
+        if table_name is None:
+            table_name = self.table_name
+
+        # Check if the hostname exists in the database
+        self.check_vm_exists(hostname, table_name)
+
+        query = f"SELECT * FROM {table_name} WHERE {self.hostname_column} = @hostname"
+        self.query = query
+
+        data = self.execute_sql_and_process_results(
+            query,
+            params={"hostname": hostname},
+            param_types={"hostname": spanner.param_types.STRING},
+        )
+
+        pin, command = data[0][self.pin_column], data[0][self.crd_column]
+        cnc_logger.debug(f"Pin and CRD for {hostname}: {pin}, {command}")
+
+        return pin, command
 
     def add_crd_and_pin(self, hostname, pin, cmd, table_name=None, override=False):
         """Adds a command and pin to the given hostname in the database when a user connects to the VM with the corresponding hostname
@@ -227,16 +291,11 @@ class SpannerDatabase:
 
         self.database.run_in_transaction(update_cmd_and_pin)
 
-    def get_pin_and_crd(self, hostname, table_name=None):
-        """Gets the pin and command for the given hostname from the database
+    def unassign_vm(self, hostname, table_name=None):
+        """Reset the given VM instance so that it can be assigned to another user.
 
         Args:
-            hostname: The hostname of the VM to get the pin and command from
-
-        Returns:
-            A tuple containing the pin and command for the given hostname. For example:
-
-            (pin, cmd)
+            hostname: The hostname of the VM to be reset
 
         Raises:
             ValueError: If the hostname does not exist in the database
@@ -245,91 +304,69 @@ class SpannerDatabase:
         if table_name is None:
             table_name = self.table_name
 
-        # Check if the hostname exists in the database
+        # Checks if the hostname exists in the database
         self.check_vm_exists(hostname, table_name)
 
-        query = f"SELECT * FROM {table_name} WHERE {self.hostname_column} = @hostname"
-        self.query = query
-
-        data = self.execute_sql_and_process_results(
-            query,
-            params={"hostname": hostname},
-            param_types={"hostname": spanner.param_types.STRING},
-        )
-
-        pin, command = data[0][self.pin_column], data[0][self.crd_column]
-        cnc_logger.debug(f"Pin and CRD for {hostname}: {pin}, {command}")
-
-        return pin, command
-
-    def vm_exists(self, hostname, table_name=None):
-        """Checks if the given hostname exists in the database
-
-        Args:
-            hostname: The hostname to check
-
-        Returns:
-            True if the hostname exists in the database, False otherwise
-        """
-
-        if table_name is None:
-            table_name = self.table_name
-
-        query = f"SELECT * FROM {table_name} WHERE {self.hostname_column} = @hostname"
-        self.query = query
-
-        with self.database.snapshot() as snapshot:
-            result = snapshot.execute_sql(
+        # Reset the VM instance
+        def reset(transaction):
+            query = (
+                f"UPDATE {table_name} SET {self.pin_column} = NULL, "
+                f"{self.crd_column} = NULL, {self.user_email_column} = NULL, "
+                f"{self.in_use_column} = FALSE "
+                f"WHERE {self.hostname_column} = @hostname"
+            )
+            self.query = query
+            row_ct = transaction.execute_update(
                 query,
                 params={"hostname": hostname},
                 param_types={"hostname": spanner.param_types.STRING},
             )
-            for row in result:
-                return True
+            cnc_logger.debug(
+                f"{row_ct} record(s) updated for {self.hostname_column}={hostname} "
+                f"with {self.pin_column}=NULL, {self.crd_column}=NULL, "
+                f"{self.user_email_column}=NULL"
+            )
 
-        return False
+        self.database.run_in_transaction(reset)
 
-    def check_vm_exists(self, hostname, table_name=None):
-        """Checks if the given hostname exists in the database.
+    def assign_vm(self, hostname, user_email, table_name=None):
+        """Assigns a VM to a user in the database
 
         Args:
-            hostname: The hostname to check
-            table_name: The name of the table in the database (to be used in sql queries).
+            hostname: The hostname of the VM to be assigned to the user
+            user_email: The email of the user to assign the VM to
 
         Raises:
             ValueError: If the hostname does not exist in the database
-
-        Returns:
-            None
+            ValueError: If the hostname already has a user assigned to it
         """
-
-        if not self.vm_exists(hostname, table_name):
-            raise ValueError(f"The hostname {hostname} does not exist in the database")
-
-    def get_unassigned_vms(self, table_name=None) -> list:
-        """Gets the hostnames of the unassigned VMs.
-
-        Returns:
-            A list of hostnames of the VMs that do not have a user email, pin,  or
-            command assigned to them.
-        """
-
         if table_name is None:
             table_name = self.table_name
 
-        query = (
-            f"SELECT {self.hostname_column} FROM {table_name} "
-            f"WHERE {self.pin_column} IS NULL AND {self.crd_column} IS NULL "
-            f"AND {self.user_email_column} IS NULL"
-        )
-        self.query = query
+        # Checks if the hostname exists in the database
+        self.check_vm_exists(hostname, table_name)
 
-        data = self.execute_sql_and_process_results(query)
+        # Assigns the VM to the user
+        def update_user_email(transaction):
+            query = (
+                f"UPDATE {self.table_name} SET {self.user_email_column} = @user_email "
+                f"WHERE {self.hostname_column} = @hostname"
+            )
+            self.query = query
+            row_ct = transaction.execute_update(
+                query,
+                params={"user_email": user_email, "hostname": hostname},
+                param_types={
+                    "user_email": spanner.param_types.STRING,
+                    "hostname": spanner.param_types.STRING,
+                },
+            )
+            cnc_logger.debug(
+                f"{row_ct} record(s) updated for {self.hostname_column}={hostname} "
+                f"with {self.user_email_column}={user_email}"
+            )
 
-        unassigned_vms = [row[self.hostname_column] for row in data]
-        cnc_logger.debug(f"Unassigned VMs: {unassigned_vms}")
-
-        return unassigned_vms
+        self.database.run_in_transaction(update_user_email)
 
     def get_assigned_vm_details(self, email: str, table_name=None) -> list:
         """Gets the hostname, pin, and crd of the assigned VM.
@@ -377,45 +414,32 @@ class SpannerDatabase:
 
         return hostname, pin, command
 
-    def assign_vm(self, hostname, user_email, table_name=None):
-        """Assigns a VM to a user in the database
+    def get_unassigned_vms(self, table_name=None) -> list:
+        """Gets the hostnames of the unassigned VMs.
 
-        Args:
-            hostname: The hostname of the VM to be assigned to the user
-            user_email: The email of the user to assign the VM to
-
-        Raises:
-            ValueError: If the hostname does not exist in the database
-            ValueError: If the hostname already has a user assigned to it
+        Returns:
+            A list of hostnames of the VMs that do not have a user email, pin,  or
+            command assigned to them.
         """
+
         if table_name is None:
             table_name = self.table_name
 
-        # Checks if the hostname exists in the database
-        self.check_vm_exists(hostname, table_name)
+        query = (
+            f"SELECT {self.hostname_column} FROM {table_name} "
+            f"WHERE {self.pin_column} IS NULL AND {self.crd_column} IS NULL "
+            f"AND {self.user_email_column} IS NULL"
+        )
+        self.query = query
 
-        # Assigns the VM to the user
-        def update_user_email(transaction):
-            query = (
-                f"UPDATE {self.table_name} SET {self.user_email_column} = @user_email "
-                f"WHERE {self.hostname_column} = @hostname"
-            )
-            self.query = query
-            row_ct = transaction.execute_update(
-                query,
-                params={"user_email": user_email, "hostname": hostname},
-                param_types={
-                    "user_email": spanner.param_types.STRING,
-                    "hostname": spanner.param_types.STRING,
-                },
-            )
-            cnc_logger.debug(
-                f"{row_ct} record(s) updated for {self.hostname_column}={hostname} "
-                f"with {self.user_email_column}={user_email}"
-            )
+        data = self.execute_sql_and_process_results(query)
 
-        self.database.run_in_transaction(update_user_email)
+        unassigned_vms = [row[self.hostname_column] for row in data]
+        cnc_logger.debug(f"Unassigned VMs: {unassigned_vms}")
 
+        return unassigned_vms
+
+    # Not used (yet)
     def get_unused_vms(self, table_name=None):
         """Get the hostnames of the VMs that are not being used.
 
@@ -443,6 +467,7 @@ class SpannerDatabase:
 
         return unused_vms
 
+    # Used on local VM
     def set_in_use_status(self, hostname, in_use: bool, table_name=None):
         """Updates the inUse status of a given VM in the database.
 
@@ -486,51 +511,31 @@ class SpannerDatabase:
 
         self.database.run_in_transaction(update_in_use)
 
-    def unassign_vm(self, hostname, table_name=None):
-        """Reset the given VM instance so that it can be assigned to another user.
+    # Used on local VM
+    @classmethod
+    def load_database(cls, project_id, instance_id, database_id, table_name=None):
+        """Loads an existing database from Cloud Spanner.
 
         Args:
-            hostname: The hostname of the VM to be reset
+            project_id: The ID of the project that owns the Cloud Spanner instance.
+            instance_id: The ID of the Cloud Spanner instance.
+            database_id: The ID of the Cloud Spanner database.
+            table_name: The name of the table in the database (to be used in sql queries).
 
-        Raises:
-            ValueError: If the hostname does not exist in the database
+        Returns:
+            A SpannerDatabase object.
         """
 
-        if table_name is None:
-            table_name = self.table_name
-
-        # Checks if the hostname exists in the database
-        self.check_vm_exists(hostname, table_name)
-
-        # Reset the VM instance
-        def reset(transaction):
-            query = (
-                f"UPDATE {table_name} SET {self.pin_column} = NULL, "
-                f"{self.crd_column} = NULL, {self.user_email_column} = NULL, "
-                f"{self.in_use_column} = FALSE "
-                f"WHERE {self.hostname_column} = @hostname"
-            )
-            self.query = query
-            row_ct = transaction.execute_update(
-                query,
-                params={"hostname": hostname},
-                param_types={"hostname": spanner.param_types.STRING},
-            )
-            cnc_logger.debug(
-                f"{row_ct} record(s) updated for {self.hostname_column}={hostname} "
-                f"with {self.pin_column}=NULL, {self.crd_column}=NULL, "
-                f"{self.user_email_column}=NULL"
-            )
-
-        self.database.run_in_transaction(reset)
+        return cls(project_id, instance_id, database_id, table_name)
 
 
-# Debug/demo code, not to be used on VM instances or in production
-if __name__ == "__main__":
+def manually_assign_and_crd_connect():
     """Run this with a command line argument to test the database. For example:
 
     python database.py A/0asfhsadfh
     """
+
+    # Debug/demo code, not to be used on VM instances or in production
 
     import getpass
     import subprocess
@@ -578,3 +583,8 @@ if __name__ == "__main__":
         publish_cmd = f"gcloud pubsub topics publish {vm_hostname} --message='start'"
         args = publish_cmd.split()
         subprocess.run(args)
+
+
+if __name__ == "__main__":
+    # Debug/demo code, not to be used on VM instances or in production
+    manually_assign_and_crd_connect()
