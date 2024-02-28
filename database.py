@@ -329,6 +329,7 @@ class SpannerDatabase:
 
         self.database.run_in_transaction(reset)
 
+    # Only used in __main__ (for debug)
     def assign_vm(self, hostname, user_email, table_name=None):
         """Assigns a VM to a user in the database
 
@@ -367,6 +368,60 @@ class SpannerDatabase:
             )
 
         self.database.run_in_transaction(update_user_email)
+
+    def find_and_assign_vm(self, user_email):
+        """This method finds and assigns a VM to a user using a transaction.
+
+        Args:
+            user_email: The user's email to link to a VM instance.
+        """
+
+        def transaction(transaction):
+            # Query for an unassigned row
+            query = (
+                f"SELECT {self.hostname_column} FROM {self.table_name} "
+                f"WHERE {self.user_email_column} IS NULL LIMIT 1"
+            )
+            results = transaction.execute_sql(query)
+            data = self.process_results(results=results)
+            # rows = list(transaction.execute_sql(query))
+            if not data:
+                cnc_logger.error(
+                    f"User {user_email} requested a VM, "
+                    "but no unassigned VMs available"
+                )
+                raise ValueError("No unassigned VMs available :(")
+
+            # Assign the first unassigned row to the user
+            hostname = data[0][self.hostname_column]
+            update_statement = (
+                f"UPDATE {self.table_name} "
+                f"SET {self.user_email_column} = @user_email "
+                f"WHERE {self.hostname_column} = @hostname"
+            )
+            params = {"user_email": user_email, "hostname": hostname}
+            param_types = {
+                "user_email": spanner.param_types.STRING,
+                "hostname": spanner.param_types.STRING,
+            }
+            transaction.execute_update(
+                update_statement, params=params, param_types=param_types
+            )
+            cnc_logger.info(
+                f"VM with hostname [{hostname}] assigned to user [{user_email}]"
+            )
+
+            return hostname
+
+        # We will keep trying to assign a user a VM until we succeed!
+        while True:
+            try:
+                # Run the transaction
+                hostname = self.database.run_in_transaction(transaction)
+                return hostname
+            except Exception as e:
+                cnc_logger.error(f"Error: {e}")
+                raise e
 
     def get_assigned_vm_details(self, email: str, table_name=None) -> list:
         """Gets the hostname, pin, and crd of the assigned VM.
