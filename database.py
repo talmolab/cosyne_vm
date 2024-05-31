@@ -4,6 +4,7 @@ This script is run on a VM instance, but is also used in the main application.
 """
 
 from google.cloud import spanner
+from google.api_core.exceptions import RetryError
 
 try:
     # This is used when running on a VM instance
@@ -76,11 +77,18 @@ class SpannerDatabase:
         """
         params = {"table_name": table_name}
         param_types = {"table_name": spanner.param_types.STRING}
-
-        with self.database.snapshot() as snapshot:
-            results = snapshot.execute_sql(
-                query, params=params, param_types=param_types
+        try:
+            with self.database.snapshot() as snapshot:
+                results = snapshot.execute_sql(
+                    query, params=params, param_types=param_types
+                )
+        except RetryError as e:
+            cnc_logger.error(f"Error: {e}")
+            cnc_logger(
+                "You may need to rerun authentication commands:"
+                "\n\t`gcloud auth application-default login`"
             )
+            raise e
 
         column_names = [r[0] for r in results]
 
@@ -423,6 +431,33 @@ class SpannerDatabase:
                 cnc_logger.error(f"Error: {e}")
                 raise e
 
+    # Used in manage
+    def get_assigned_vms(self, table_name=None):
+        """Gets the hostnames of the VMs that are assigned to a user.
+
+        Args:
+            table_name: The name of the table in the database to run queries on. Default uses self.table_name.
+
+        Returns:
+            A list of hostnames of the VMs that have a user email assigned to them.
+        """
+
+        if table_name is None:
+            table_name = self.table_name
+
+        query = (
+            f"SELECT {self.hostname_column} "
+            f"FROM {table_name} "
+            f"WHERE {self.user_email_column} IS NOT NULL"
+        )
+        self.query = query
+
+        data = self.execute_sql_and_process_results(query)
+
+        assigned_vms = [row[self.hostname_column] for row in data]
+
+        return assigned_vms
+
     def get_assigned_vm_details(self, email: str, table_name=None) -> list:
         """Gets the hostname, pin, and crd of the assigned VM.
 
@@ -594,6 +629,38 @@ class SpannerDatabase:
             )
 
         self.database.run_in_transaction(update_in_use)
+
+    # Used in manage
+    def get_user_email(self, hostname, table_name=None):
+        """Gets the email of the user assigned to the given hostname.
+
+        Args:
+            hostname: The hostname of the VM to get the user email for
+            table_name: The name of the table in the database (to be used in sql queries).
+
+        Returns:
+            The email of the user assigned to the given hostname.
+        """
+
+        if table_name is None:
+            table_name = self.table_name
+
+        query = (
+            f"SELECT {self.user_email_column} "
+            f"FROM {table_name} "
+            f"WHERE {self.hostname_column} = @hostname"
+        )
+        self.query = query
+
+        with self.database.snapshot() as snapshot:
+            results = snapshot.execute_sql(
+                query,
+                params={"hostname": hostname},
+                param_types={"hostname": spanner.param_types.STRING},
+            )
+
+            for row in results:
+                return row[0]
 
     # Used on local VM
     @classmethod
