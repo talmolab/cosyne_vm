@@ -12,4 +12,4 @@ google-cloud-spanner==3.42.0
 psutil
 
 # To run SLEAP process
-sleap==1.3.3
+sleap[pypi]==1.3.4
