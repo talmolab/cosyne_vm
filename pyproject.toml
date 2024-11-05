@@ -21,7 +21,15 @@ dependencies = [
     "psutil",
     "sleap[pypi]==1.3.4"
 ]
-keywords = ["tutorial", "vm", "sleap", "google-cloud"]
+keywords = [
+    "tutorial",
+    "vm",
+    "gcp",
+    "google-cloud",
+    "spanner",
+    "pubsub",
+    "logging",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
