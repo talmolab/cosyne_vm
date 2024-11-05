@@ -2,6 +2,9 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["tutorial_vm"]
+
 [project]
 name = "tutorial-vm"
 version = "0.0.1a0"
