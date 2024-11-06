@@ -13,8 +13,8 @@ except ImportError as e:
     )
     raise e
 
-from tutorial_vm.database import SpannerDatabase
-from tutorial_vm.logging_utils import CloudAndConsoleLogger
+from database import SpannerDatabase
+from logging_utils import CloudAndConsoleLogger
 
 
 cnc_logger = CloudAndConsoleLogger(
