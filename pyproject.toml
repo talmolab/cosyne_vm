@@ -3,7 +3,7 @@ name = "tutorial-vm"
 version = "0.0.1a0"
 authors = [
     { name = "Liezl Maree", email = "lmaree@salk.edu" },
-    { name = "Andrew Park", email = "apark@salk.edu" },
+    { name = "Andrew Park", email = "hep003@ucsd.edu" },
     { name = "Elizabeth Berrigan", email = "eberrigan@salk.edu" },
 ]
 description = "Scripts for VM instances of tutorial platform."
