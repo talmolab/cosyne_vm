@@ -13,6 +13,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Google Cloud credentials
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcloud-key.json
+      run: |
+        echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > $GOOGLE_APPLICATION_CREDENTIALS
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -35,3 +41,6 @@ jobs:
     - name: Run tests
       run: |
         pytest tests/
+
+    - name: Clean up credentials
+      run: rm -f $GOOGLE_APPLICATION_CREDENTIALS
