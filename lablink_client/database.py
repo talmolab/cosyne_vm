@@ -8,7 +8,7 @@ from google.api_core.exceptions import RetryError
 
 try:
     # This is used when running on a VM instance
-    from tutorial_vm.logging_utils import CloudAndConsoleLogger
+    from lablink_client.logging_utils import CloudAndConsoleLogger
 except ImportError:
     # This is used when running in the main application
     from vmassign import CloudAndConsoleLogger
