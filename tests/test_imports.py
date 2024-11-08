@@ -2,13 +2,13 @@
 
 
 def test_import():
-    import tutorial_vm
+    import lablink_client
 
-    from tutorial_vm import crd_connect
-    from tutorial_vm import database
-    from tutorial_vm import logging_utils
-    from tutorial_vm import subscribe_instance
-    from tutorial_vm import update_inuse_status
+    from lablink_client import crd_connect
+    from lablink_client import database
+    from lablink_client import logging_utils
+    from lablink_client import subscribe_instance
+    from lablink_client import update_inuse_status
 
 
 if __name__ == "__main__":
