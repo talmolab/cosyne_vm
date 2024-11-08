@@ -9,9 +9,9 @@ import socket
 
 from google.cloud import pubsub_v1
 
-from crd_connect import connect_to_crd
-from database import SpannerDatabase
-from logging_utils import CloudAndConsoleLogger
+from lablink_client.crd_connect import connect_to_crd
+from lablink_client.database import SpannerDatabase
+from lablink_client.logging_utils import CloudAndConsoleLogger
 
 
 def create_parser():
