@@ -1,5 +1,5 @@
 [project]
-name = "tutorial-vm"
+name = "lablink-client"
 version = "0.0.1a0"
 authors = [
     { name = "Liezl Maree", email = "lmaree@salk.edu" },
