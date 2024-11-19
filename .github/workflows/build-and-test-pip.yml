@@ -2,22 +2,27 @@ name: Build and Test
 
 on:
   pull_request:
-      types: [opened, synchronize, reopened]
-
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Google Cloud credentials
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcloud-key.json
+    - name: Authenticate to Google Cloud
+      id: auth
       run: |
-        echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > $GOOGLE_APPLICATION_CREDENTIALS
+        gcloud auth login --brief
+      env:
+        GCP_WORKLOAD_IDENTITY_PROVIDER: projects/${{ secrets.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.GCP_POOL_ID }}/providers/${{ secrets.GCP_PROVIDER_ID }}
+        GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -41,6 +46,3 @@ jobs:
     - name: Run tests
       run: |
         pytest tests/
-
-    - name: Clean up credentials
-      run: rm -f $GOOGLE_APPLICATION_CREDENTIALS
