@@ -18,11 +18,11 @@ jobs:
 
     - name: Authenticate to Google Cloud
       id: auth
-      run: |
-        gcloud auth login --brief
-      env:
-        GCP_WORKLOAD_IDENTITY_PROVIDER: projects/${{ secrets.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.GCP_POOL_ID }}/providers/${{ secrets.GCP_PROVIDER_ID }}
-        GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+      uses: google-github-actions/auth@v1
+      with:
+        create_credentials_file: true
+        workload_identity_provider: 'projects/${{ secrets.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.GCP_POOL_ID }}/providers/${{ secrets.GCP_PROVIDER_ID }}'
+        service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -34,7 +34,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install --editable .[dev]
 
-    - name: Build package 
+    - name: Build package
       run: |
         python -m build
         twine check dist/*
