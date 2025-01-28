@@ -15,11 +15,21 @@ class CloudAndConsoleLogger:
         self.name = module_name
 
         format = format or "%(module)s[%(levelname)s]: %(message)s"
-        formatter = logging.Formatter(format, datefmt="%H:%M:%S")
+        self.formatter = logging.Formatter(format, datefmt="%H:%M:%S")
+        self.level = level
         self.console_logger = self.setup_console_logging(
-            level=level, formatter=formatter
-        )
-        self.cloud_logger = self.setup_cloud_logging(level=level, formatter=formatter)
+            level=self.level, formatter=self.formatter
+        )   
+        self._cloud_logger = None
+
+
+    @property
+    def cloud_logger(self):
+        if self._cloud_logger is None:
+            self._cloud_logger = self.setup_cloud_logging(
+                level=self.level, formatter=self.formatter
+            )
+        return self._cloud_logger
 
     def __getattr__(self, name):
         """Pass the log call to both the console and cloud loggers."""
