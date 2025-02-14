@@ -17,14 +17,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # - name: Authenticate to Google Cloud
-    #   id: auth
-    #   uses: google-github-actions/auth@v1
-    #   with:
-    #     create_credentials_file: true
-    #     workload_identity_provider: 'projects/${{ secrets.GCP_PROJECT_ID }}/locations/global/workloadIdentityPools/${{ secrets.GCP_POOL_ID }}/providers/${{ secrets.GCP_PROVIDER_ID }}'
-    #     service_account: '${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}'
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
