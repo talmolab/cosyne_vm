@@ -59,6 +59,10 @@ jobs:
         name: lablink-client-dist
         path: dist/
 
+    - name: List files
+      run: |
+        ls dist/
+
     - name: Install package
       run: |
         pip install dist/*.whl[dev]
