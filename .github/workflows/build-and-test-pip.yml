@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    name: Build lablink-client
     runs-on: ubuntu-latest
 
     permissions:
