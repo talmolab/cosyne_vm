@@ -32,9 +32,40 @@ jobs:
         python -m build
         twine check dist/*
 
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: lablink-client-dist
+        path: dist/
+        retention-days: 1
+
+  tests:
+    name: Test lablink-client
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: lablink-client-dist
+        path: dist/
+
     - name: Install package
       run: |
-        pip install dist/*.whl
+        pip install dist/*.whl[dev]
+
+    - name: Print installed packages
+      run: |
+        pip list
 
     - name: Run tests
       run: |
