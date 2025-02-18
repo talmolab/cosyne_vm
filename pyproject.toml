@@ -43,7 +43,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["lablink_client"]
+where = ["."]
+include = ["lablink_client*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
