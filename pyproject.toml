@@ -1,0 +1,50 @@
+[project]
+name = "lablink-client"
+version = "0.0.1a0"
+authors = [
+    { name = "Liezl Maree", email = "lmaree@salk.edu" },
+    { name = "Andrew Park", email = "hep003@ucsd.edu" },
+    { name = "Elizabeth Berrigan", email = "eberrigan@salk.edu" },
+]
+description = "Scripts for VM instances of tutorial platform."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.7"
+dependencies = [
+    "google-cloud-logging",
+    "google-cloud-pubsub",
+    "google-cloud-spanner==3.42.0",
+    "psutil",
+]
+keywords = [
+    "tutorial",
+    "vm",
+    "gcp",
+    "google-cloud",
+    "spanner",
+    "pubsub",
+    "logging",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+]
+
+[project.optional-dependencies]
+dev = ["toml", "twine", "build", "pytest", "black"]
+
+[project.urls]
+Homepage = "https://github.com/talmolab/tutorial_vm"
+Issues = "https://github.com/talmolab/tutorial_vm/issues"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lablink_client*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

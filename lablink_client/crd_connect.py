@@ -12,7 +12,7 @@ import argparse
 import random
 import subprocess
 
-from logging_utils import CloudAndConsoleLogger
+from lablink_client.logging_utils import CloudAndConsoleLogger
 
 
 # Set up logging
