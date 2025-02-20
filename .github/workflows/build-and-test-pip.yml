@@ -71,16 +71,6 @@ jobs:
     - name: Print installed packages
       run: |
         pip list
-    
-    - name: 'Authenticate with GCP'
-      id: auth
-      uses: 'google-github-actions/auth@v2'
-      with:
-        project_id: 'vmassign-dev'
-        workload_identity_provider: 'projects/446967198037/locations/global/workloadIdentityPools/github-actions'
-    
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v2'
 
     - name: Run tests
       run: |
