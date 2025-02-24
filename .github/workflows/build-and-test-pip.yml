@@ -4,14 +4,14 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     name: Build lablink-client
     runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Checkout code
@@ -48,7 +48,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: "Authenticate with GCP"
+      - name: "Authenticate to Google Cloud"
         id: auth
         uses: "google-github-actions/auth@v2"
         with:
