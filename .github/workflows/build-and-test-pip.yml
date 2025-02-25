@@ -122,3 +122,4 @@ jobs:
         run: |
           terraform plan -destroy -no-color
           terraform destroy -auto-approve -no-color
+        working-directory: ./terraform
