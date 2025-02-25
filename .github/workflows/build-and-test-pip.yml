@@ -88,9 +88,9 @@ jobs:
 
       - name: Change Directory to Project Root
         run: |
-          cd $GITHUB_WORKSPACE
+          cd ../
 
-      - name: Change Directory to Project Root
+      - name: Debug Current Directory
         run: |
           pwd
 
