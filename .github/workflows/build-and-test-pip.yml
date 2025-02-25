@@ -114,6 +114,7 @@ jobs:
           pytest tests/
 
       - name: Clean up Terraform resources
+        if: always()
         run: |
           terraform plan -destroy -no-color
           terraform destroy -auto-approve -no-color
