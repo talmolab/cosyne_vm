@@ -121,3 +121,36 @@ jobs:
       - name: Run tests
         run: |
           pytest tests/
+
+    cleanup:
+      name: Cleanup Terraform Resources
+      runs-on: ubuntu-latest
+      needs: tests
+      if: always()
+
+      defaults:
+        run:
+          working-directory: ./terraform
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Authenticate to Google Cloud
+          id: auth
+          uses: "google-github-actions/auth@v2"
+          with:
+            project_id: "vmassign-dev"
+            service_account: "service-account-admin@vmassign-dev.iam.gserviceaccount.com"
+            workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v1
+          with:
+            terraform_version: 1.9.4
+
+        - name: Terraform Init
+          run: terraform init
+
+        - name: Terraform Destroy
+          run: terraform destroy -auto-approve -no-color
