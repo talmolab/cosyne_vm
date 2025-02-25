@@ -8,7 +8,7 @@ resource "google_spanner_instance" "database_instance" {
   name             = "vmassign-${var.resource_suffix}"
   display_name     = "Assign Instance ${var.resource_suffix}"
   config           = "regional-us-central1"
-  processing_units = 10
+  processing_units = 100
 }
 
 
