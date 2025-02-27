@@ -63,7 +63,7 @@ jobs:
 
       - name: Grant the Service Account the necessary permissions
         run: |
-          gcloud projects add-iam-policy-binding vmassign-dev \
+          gcloud iam service-accounts add-iam-policy-binding github-actions@vmassign-dev.iam.gserviceaccount.com \
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
             --role="roles/iam.workloadIdentityUser"
 
