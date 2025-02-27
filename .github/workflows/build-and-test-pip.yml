@@ -67,6 +67,11 @@ jobs:
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
             --role="roles/iam.workloadIdentityUser"
 
+          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/talmolab/cosyne_vm" \
+            --role="roles/iam.serviceAccountTokenCreator"
+
+
           gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/spanner.admin"
@@ -86,10 +91,6 @@ jobs:
           project_id: "vmassign-dev"
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
           service_account: "github-actions-testing@vmassign-dev.iam.gserviceaccount.com"
-
-      - name: Debug Active GCP Service Account
-        run: |
-          gcloud auth list --filter=status:ACTIVE --format="value(account)"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
