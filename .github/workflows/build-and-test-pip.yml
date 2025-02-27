@@ -74,13 +74,14 @@ jobs:
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountUser"
 
-          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+          gcloud project add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/spanner.admin"
 
-          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+
+          gcloud project add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
-            --role="roles/iam.serviceAccountAdmin"
+            --role="roles/iam.serviceAcountAdmin"
 
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
             --role=roles/iam.workloadIdentityUser \
@@ -90,6 +91,7 @@ jobs:
         if: ${{ steps.assign.outputs.status }} == "success"
         run: |
           gcloud iam service-accounts get-iam-policy github-actions-testing@vmassign-dev.iam.gserviceaccount.com
+          gcloud projects get-iam-policy vmassign-dev --flatten="bindings[].members" --format="table(bindings.role, bindings.members)" | grep "github-actions-testing"
 
   tests:
     name: Test lablink-client
