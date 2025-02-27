@@ -57,7 +57,9 @@ jobs:
 
       - name: Create a Temporary Service Account
         run: |
-          gcloud iam service-accounts create "github-actions" --description="Temporary Service Account for GitHub Actions" --display-name="GitHub Actions Service Account"
+          gcloud iam service-accounts create "github-actions" \
+            --description="Temporary Service Account for GitHub Actions" \
+            --display-name="GitHub Actions Service Account"
 
       - name: Grant the Service Account the necessary permissions
         run: |
