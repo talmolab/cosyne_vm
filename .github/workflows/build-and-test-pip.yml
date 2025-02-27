@@ -57,14 +57,12 @@ jobs:
 
       - name: Create a Temporary Service Account
         run: |
-          gcloud iam service-accounts create "github-actions" \
-            --description="Temporary Service Account for GitHub Actions" \
-            --display-name="GitHub Actions Service Account"
+          gcloud iam service-accounts create "github-actions" --description="Temporary Service Account for GitHub Actions" --display-name="GitHub Actions Service Account"
 
       - name: Grant the Service Account the necessary permissions
         run: |
           gcloud projects add-iam-policy-binding vmassign-dev \
-            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/my-org/my-repo" \
+            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/talmolab/cosyne_vm" \
             --role="roles/iam.workloadIdentityUser"
 
           gcloud projects add-iam-policy-binding vmassign-dev \
