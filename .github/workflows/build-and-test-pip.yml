@@ -81,7 +81,7 @@ jobs:
 
           gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
-            --role="roles/iam.serviceAcountAdmin"
+            --role="roles/iam.serviceAccountAdmin"
 
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
             --role=roles/iam.workloadIdentityUser \
