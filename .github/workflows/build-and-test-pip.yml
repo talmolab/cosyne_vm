@@ -75,6 +75,10 @@ jobs:
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountTokenCreator"
 
+          gcloud projects add-iam-policy-binding vmassign-dev \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/iam.serviceAccountAdmin"
+
       - name: "Activate Service Account"
         id: auth-temp-sa
         uses: google-github-actions/auth@v2
