@@ -74,12 +74,12 @@ jobs:
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountUser"
 
-          gcloud project add-iam-policy-binding vmassign-dev \
+          gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/spanner.admin"
 
 
-          gcloud project add-iam-policy-binding vmassign-dev \
+          gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAcountAdmin"
 
