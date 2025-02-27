@@ -84,7 +84,7 @@ jobs:
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountAdmin"
 
-          gcloud iam service-accounts get-iam-policy github-actions@vmassign-dev.iam.gserviceaccount.com
+          gcloud iam service-accounts get-iam-policy github-actions-testing@vmassign-dev.iam.gserviceaccount.com
 
       - name: "Activate Service Account"
         id: auth-temp-sa
