@@ -53,8 +53,31 @@ jobs:
         uses: "google-github-actions/auth@v2"
         with:
           project_id: "vmassign-dev"
-          service_account: "service-account-admin@vmassign-dev.iam.gserviceaccount.com"
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
+
+      - name: Create a Temporary Service Account
+        run: |
+          gcloud iam service-accounts create "Github Actions" \
+            --description="Temporary Service Account for GitHub Actions" \
+            --display-name="GitHub Actions Service Account"
+
+      - name: Grant the Service Account the necessary permissions
+        run: |
+          gcloud projects add-iam-policy-binding vmassign-dev \
+            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/my-org/my-repo" \
+            --role="roles/iam.workloadIdentityUser"
+
+          gcloud projects add-iam-policy-binding vmassign-dev \
+            --member="serviceAccount:github-actions@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/spanner.admin"
+
+      - name: "Activate Service Account"
+        id: auth-temp-sa
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: "vmassign-dev"
+          workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
+          service_account: "github-actions@vmassign-dev.iam.gserviceaccount.com"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
