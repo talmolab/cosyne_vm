@@ -146,3 +146,8 @@ jobs:
           terraform plan -destroy -no-color
           terraform destroy -auto-approve -no-color
         working-directory: ./terraform
+
+      - name: Clean up Service Account
+        if: always()
+        run: |
+          gcloud iam service-accounts delete "github-actions@vmassign-dev.iam.gserviceaccount.com" --quiet
