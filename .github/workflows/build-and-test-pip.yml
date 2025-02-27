@@ -39,8 +39,8 @@ jobs:
           path: dist/
           retention-days: 1
 
-  tests:
-    name: Test lablink-client
+  prepare:
+    name: Create Serivce Account
     runs-on: ubuntu-latest
     needs: build
 
@@ -86,9 +86,18 @@ jobs:
 
           gcloud iam service-accounts get-iam-policy github-actions-testing@vmassign-dev.iam.gserviceaccount.com
 
-      - name: "Activate Service Account"
-        id: auth-temp-sa
-        uses: google-github-actions/auth@v2
+  tests:
+    name: Test lablink-client
+    runs-on: ubuntu-latest
+    needs: prepare
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: "Authenticate to Google Cloud"
+        id: auth
+        uses: "google-github-actions/auth@v2"
         with:
           project_id: "vmassign-dev"
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
