@@ -56,12 +56,14 @@ jobs:
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
 
       - name: Create a Temporary Service Account
+        id: create
         run: |
           gcloud iam service-accounts create "github-actions-testing" \
             --description="Temporary Service Account for GitHub Actions" \
             --display-name="GitHub Actions Service Account"
 
       - name: Grant the Service Account the necessary permissions
+        if: ${{ steps.create.outputs.status }} == "success"
         run: |
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
