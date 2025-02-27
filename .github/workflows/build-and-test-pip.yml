@@ -57,22 +57,22 @@ jobs:
 
       - name: Create a Temporary Service Account
         run: |
-          gcloud iam service-accounts create "github-actions" \
+          gcloud iam service-accounts create "github-actions-testing" \
             --description="Temporary Service Account for GitHub Actions" \
             --display-name="GitHub Actions Service Account"
 
       - name: Grant the Service Account the necessary permissions
         run: |
-          gcloud iam service-accounts add-iam-policy-binding github-actions@vmassign-dev.iam.gserviceaccount.com \
+          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
             --role="roles/iam.workloadIdentityUser"
 
           gcloud projects add-iam-policy-binding vmassign-dev \
-            --member="serviceAccount:github-actions@vmassign-dev.iam.gserviceaccount.com" \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/spanner.admin"
 
           gcloud projects add-iam-policy-binding vmassign-dev \
-            --member="serviceAccount:github-actions@vmassign-dev.iam.gserviceaccount.com" \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountTokenCreator"
 
       - name: "Activate Service Account"
@@ -81,7 +81,11 @@ jobs:
         with:
           project_id: "vmassign-dev"
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
-          service_account: "github-actions@vmassign-dev.iam.gserviceaccount.com"
+          service_account: "github-actions-testing@vmassign-dev.iam.gserviceaccount.com"
+
+      - name: Debug Active GCP Service Account
+        run: |
+          gcloud auth list --filter=status:ACTIVE --format="value(account)"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -154,4 +158,4 @@ jobs:
       - name: Clean up Service Account
         if: always()
         run: |
-          gcloud iam service-accounts delete "github-actions@vmassign-dev.iam.gserviceaccount.com" --quiet
+          gcloud iam service-accounts delete "github-actions-testing@vmassign-dev.iam.gserviceaccount.com" --quiet
