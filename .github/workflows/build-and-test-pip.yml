@@ -165,4 +165,20 @@ jobs:
       - name: Clean up Service Account
         if: always()
         run: |
+          gcloud projects remove-iam-policy-binding vmassign-dev \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/spanner.admin"
+
+          gcloud projects remove-iam-policy-binding vmassign-dev \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/iam.serviceAccountTokenCreator"
+
+          gcloud iam service-accounts remove-iam-policy-binding github-actions@vmassign-dev.iam.gserviceaccount.com \
+            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/talmolab/cosyne_vm" \
+            --role="roles/iam.workloadIdentityUser"
+
+          gcloud projects remove-iam-policy-binding vmassign-dev \
+            --member="serviceAccount:github-actions@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/iam.serviceAccountAdmin"
+
           gcloud iam service-accounts delete "github-actions-testing@vmassign-dev.iam.gserviceaccount.com" --quiet
