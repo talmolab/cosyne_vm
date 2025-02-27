@@ -64,17 +64,12 @@ jobs:
       - name: Grant the Service Account the necessary permissions
         run: |
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
-            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
-            --role="roles/iam.workloadIdentityUser"
-
-          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
-            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountTokenCreator"
 
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
-          --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
-          --role="roles/iam.serviceAccountUser"
-
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/iam.serviceAccountUser"
 
           gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
@@ -83,6 +78,10 @@ jobs:
           gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountAdmin"
+
+          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+            --role=roles/iam.workloadIdentityUser \
+            --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm"
 
       - name: Check Service Account
         run: |
