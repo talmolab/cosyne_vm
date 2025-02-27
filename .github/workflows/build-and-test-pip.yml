@@ -71,6 +71,10 @@ jobs:
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
             --role="roles/iam.serviceAccountTokenCreator"
 
+          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+          --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm" \
+          --role="roles/iam.serviceAccountUser"
+
 
           gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
@@ -78,12 +82,10 @@ jobs:
 
           gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
-            --role="roles/iam.serviceAccountTokenCreator"
-
-          gcloud projects add-iam-policy-binding vmassign-dev \
-            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountAdmin"
 
+      - name: Check Service Account
+        run: |
           gcloud iam service-accounts get-iam-policy github-actions-testing@vmassign-dev.iam.gserviceaccount.com
 
   tests:
