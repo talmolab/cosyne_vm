@@ -167,7 +167,7 @@ def test_assign_vm():
 
 def test_get_assigned_vm_details():
     """
-    Test if the function raises an Exception when the VM is already in use
+    Test if the assigned VM details are fetched correctly
     """
     db = SpannerDatabase.load_database(
         project_id="vmassign-dev",
@@ -175,9 +175,12 @@ def test_get_assigned_vm_details():
         database_id="users",
         table_name="Users",
     )
-    actual_data = db.get_assigned_vm_details(email="1234abc@gmail.com")
+    actual_data = db.get_assigned_vm_details(email="abc1234@gmail.com")
     expected_data = ("vm1", None, None)
     assert actual_data == expected_data
+
+    with pytest.raises(ValueError):
+        db.get_assigned_vm_details(email="123456@gmail.com")
 
 
 def test_unassign_vm():
