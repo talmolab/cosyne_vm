@@ -10,5 +10,5 @@ terraform {
 provider "google" {
   project                     = "vmassign-dev"
   region                      = "us-west1"
-  impersonate_service_account = "github-actions-testing@vmassign-dev.iam.gserviceaccount.com"
+  impersonate_service_account = "service-account-admin@vmassign-dev.iam.gserviceaccount.com"
 }
