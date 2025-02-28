@@ -66,7 +66,7 @@ jobs:
         if: ${{ steps.create.outputs.status }} == "success"
         id: assign
         run: |
-          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+          gcloud projects add-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountTokenCreator"
 
