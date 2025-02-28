@@ -101,7 +101,15 @@ def test_read_data():
     )
     add_vm(db.database)
     actual_data = db.read_data(table_name="Users")
-    expected_data = [("vm1", None, None, None, False)]
+    expected_data = [
+        {
+            "Hostname": "vm1",
+            "Pin": None,
+            "CrdCmd": None,
+            "UserEmail": None,
+            "inUse": False,
+        }
+    ]
     assert actual_data == expected_data
 
 

@@ -10,6 +10,7 @@ This repository stores the scripts that are locally available on every VM instan
 2. A Workload Identity Federation in GCP.
     - The Workload Identity Federation should be created in the `vmassign-dev` project.
     - The Workload Identity Federation should be associated with the Service Account created in the prereq. 1.
+3. It requires `vmassign-dev` project in GCP.
 
 ## Dependencies
 
