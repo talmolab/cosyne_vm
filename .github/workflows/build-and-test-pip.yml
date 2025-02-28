@@ -83,18 +83,12 @@ jobs:
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountAdmin"
 
-          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
-            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
-            --role="roles/iam.workloadIdentityUser"
-
-
+      - name: Impersonate the Service Account
+        if: ${{ steps.assign.outputs.status }} == "success"
+        run: |
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
             --role=roles/iam.workloadIdentityUser \
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm"
-
-      - name: Wait for Service Account to be created
-        if: ${{ steps.assign.outputs.status }} == "success"
-        run: sleep 10
 
       - name: Check Service Account
         if: ${{ steps.assign.outputs.status }} == "success"
