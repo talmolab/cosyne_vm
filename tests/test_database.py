@@ -14,7 +14,7 @@ def add_vm(database):
         transaction.execute_update(query)
         print("Inserted VM")
 
-    database.run_transaction(insert_vm_row)
+    database.run_in_transaction(insert_vm_row)
 
 
 def test_create_database():
