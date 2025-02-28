@@ -99,7 +99,7 @@ def test_read_data():
         database_id="users",
         table_name="Users",
     )
-    add_vm(db)
+    add_vm(db.database)
     actual_data = db.read_data(table_name="Users")
     expected_data = [("vm1", None, None, None, False)]
     assert actual_data == expected_data
