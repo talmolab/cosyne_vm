@@ -113,6 +113,9 @@ jobs:
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
           service_account: "github-actions-testing@vmassign-dev.iam.gserviceaccount.com"
 
+      - name: Wait
+        run: sleep 10
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -190,12 +193,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: "Authenticate to Google Cloud"
+      - name: Authenticate to Google Cloud
         id: auth
         uses: "google-github-actions/auth@v2"
         with:
           project_id: "vmassign-dev"
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
+
+      - name: Check Roles
+        run: |
+          gcloud projects get-iam-policy vmassign-dev --format=json | jq '.bindings[] | select(.members[] | contains("github-actions-testing@vmassign-dev.iam.gserviceaccount.com"))'
 
       - name: Clean up Service Account
         run: |
@@ -216,5 +223,6 @@ jobs:
             --role="roles/iam.workloadIdentityUser"
 
       - name: Delete Service Account
+        if: always()
         run: |
           gcloud iam service-accounts delete "github-actions-testing@vmassign-dev.iam.gserviceaccount.com" --quiet
