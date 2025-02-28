@@ -175,7 +175,7 @@ def test_get_assigned_vm_details():
         database_id="users",
         table_name="Users",
     )
-    actual_data = db.get_assigned_vm_details(hostname="vm1")
+    actual_data = db.get_assigned_vm_details(email="1234abc@gmail.com")
     expected_data = ("vm1", None, None)
     assert actual_data == expected_data
 
