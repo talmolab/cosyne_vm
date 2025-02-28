@@ -54,10 +54,7 @@ jobs:
         with:
           project_id: "vmassign-dev"
           workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
-          service_account: "github-actions-testing@vmassign-dev.iam.gserviceaccount.com"
-
-      - name: Wait
-        run: sleep 10
+          service_account: "service-account-admin@vmassign-dev.iam.gserviceaccount.com"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
