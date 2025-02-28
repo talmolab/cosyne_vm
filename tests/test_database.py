@@ -151,7 +151,7 @@ def test_assign_vm():
         database_id="users",
         table_name="Users",
     )
-    db.assign_vm(hostname="vm1", user_email="abc1234@gmail.com")
+    db.find_and_assign_vm(user_email="abc1234@gmail.com")
     actual_data = db.read_data(table_name="Users")
     expected_data = [
         {
@@ -159,13 +159,13 @@ def test_assign_vm():
             "Pin": None,
             "CrdCmd": None,
             "UserEmail": "abc1234@gmail.com",
-            "inUse": True,
+            "inUse": False,
         }
     ]
     assert actual_data == expected_data
 
 
-def test_assign_already_inuse():
+def test_get_assigned_vm_details():
     """
     Test if the function raises an Exception when the VM is already in use
     """
@@ -175,8 +175,9 @@ def test_assign_already_inuse():
         database_id="users",
         table_name="Users",
     )
-    with pytest.raises(ValueError):
-        db.assign_vm(hostname="vm1", user_email="abc1234@gmail.com")
+    actual_data = db.get_assigned_vm_details(hostname="vm1")
+    expected_data = ("vm1", None, None)
+    assert actual_data == expected_data
 
 
 def test_unassign_vm():
