@@ -181,8 +181,22 @@ jobs:
           terraform destroy -auto-approve -no-color
         working-directory: ./terraform
 
+  cleanup:
+    name: Clean up Service Account
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: "Authenticate to Google Cloud"
+        id: auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          project_id: "vmassign-dev"
+          workload_identity_provider: "projects/446967198037/locations/global/workloadIdentityPools/github-actions/providers/my-repo"
+
       - name: Clean up Service Account
-        if: always()
         run: |
           gcloud projects remove-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
@@ -200,4 +214,6 @@ jobs:
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/talmolab/cosyne_vm" \
             --role="roles/iam.workloadIdentityUser"
 
+      - name: Delete Service Account
+        run: |
           gcloud iam service-accounts delete "github-actions-testing@vmassign-dev.iam.gserviceaccount.com" --quiet
