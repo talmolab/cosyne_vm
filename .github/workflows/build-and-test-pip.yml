@@ -211,10 +211,6 @@ jobs:
             --role="roles/iam.serviceAccountTokenCreator"
 
           gcloud projects remove-iam-policy-binding vmassign-dev \
-            --member="serviceAccount:github-actions@vmassign-dev.iam.gserviceaccount.com" \
-            --role="roles/iam.serviceAccountAdmin"
-
-          gcloud projects remove-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/spanner.admin"
 
