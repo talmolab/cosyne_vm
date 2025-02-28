@@ -84,8 +84,17 @@ jobs:
             --role="roles/iam.serviceAccountAdmin"
 
           gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/iam.workloadIdentityUser"
+
+
+          gcloud iam service-accounts add-iam-policy-binding github-actions-testing@vmassign-dev.iam.gserviceaccount.com \
             --role=roles/iam.workloadIdentityUser \
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workloadIdentityPools/github-actions/attribute.repository/talmolab/cosyne_vm"
+
+      - name: Wait for Service Account to be created
+        if: ${{ steps.assign.outputs.status }} == "success"
+        run: sleep 10
 
       - name: Check Service Account
         if: ${{ steps.assign.outputs.status }} == "success"
@@ -183,15 +192,15 @@ jobs:
         run: |
           gcloud projects remove-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
-            --role="roles/spanner.admin"
-
-          gcloud projects remove-iam-policy-binding vmassign-dev \
-            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountTokenCreator"
 
           gcloud projects remove-iam-policy-binding vmassign-dev \
             --member="serviceAccount:github-actions@vmassign-dev.iam.gserviceaccount.com" \
             --role="roles/iam.serviceAccountAdmin"
+
+          gcloud projects remove-iam-policy-binding vmassign-dev \
+            --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+            --role="roles/spanner.admin"
 
           gcloud iam service-accounts remove-iam-policy-binding github-actions@vmassign-dev.iam.gserviceaccount.com \
             --member="principalSet://iam.googleapis.com/projects/446967198037/locations/global/workforcePools/github-actions/attribute.repository/talmolab/cosyne_vm" \
