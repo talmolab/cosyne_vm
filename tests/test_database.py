@@ -139,3 +139,65 @@ def test_check_vm_exists():
         table_name="Users",
     )
     db.check_vm_exists(hostname="vm1")
+
+
+def test_assign_vm():
+    """
+    Test if the VM is assigned correctly
+    """
+    db = SpannerDatabase.load_database(
+        project_id="vmassign-dev",
+        instance_id="vmassign-test",
+        database_id="users",
+        table_name="Users",
+    )
+    db.assign_vm(hostname="vm1", user_email="abc1234@gmail.com")
+    actual_data = db.read_data(table_name="Users")
+    expected_data = [
+        {
+            "Hostname": "vm1",
+            "Pin": None,
+            "CrdCmd": None,
+            "UserEmail": "abc1234@gmail.com",
+            "inUse": True,
+        }
+    ]
+    assert actual_data == expected_data
+
+
+def test_assign_already_inuse():
+    """
+    Test if the function raises an Exception when the VM is already in use
+    """
+    db = SpannerDatabase.load_database(
+        project_id="vmassign-dev",
+        instance_id="vmassign-test",
+        database_id="users",
+        table_name="Users",
+    )
+    with pytest.raises(ValueError):
+        db.assign_vm(hostname="vm1", user_email="abc1234@gmail.com")
+
+
+def test_unassign_vm():
+    """
+    Test if the VM is unassigned correctly
+    """
+    db = SpannerDatabase.load_database(
+        project_id="vmassign-dev",
+        instance_id="vmassign-test",
+        database_id="users",
+        table_name="Users",
+    )
+    db.unassign_vm(hostname="vm1")
+    actual_data = db.read_data(table_name="Users")
+    expected_data = [
+        {
+            "Hostname": "vm1",
+            "Pin": None,
+            "CrdCmd": None,
+            "UserEmail": None,
+            "inUse": False,
+        }
+    ]
+    assert actual_data == expected_data
