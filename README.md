@@ -6,11 +6,15 @@ This repository stores the scripts that are locally available on every VM instan
 
 1. A Service Account in Google Cloud Platform (GCP) in `vmassign-dev` project. 
     - The service account should be created in the vmassign-dev project.
-    - Grant appropriate IAM roles to enable authentication and Terraform execution.
-2. A Workload Identity Federation in GCP.
+    - Grant appropriate IAM roles to enable authentication and Terraform execution. The required roles are the following:
+      - `roles/iam.serviceAccountUser`
+      - `roles/iam.serviceAccountTokenCreator`
+      - `roles/spanner.admin`
+    - The name of the service account must be "github-actions-testing"
+2. A Workload Identity Federation (WIF) in GCP.
     - The Workload Identity Federation should be created in the `vmassign-dev` project.
     - The Workload Identity Federation should be associated with the Service Account created in the prereq. 1.
-3. It requires `vmassign-dev` project in GCP.
+3. It requires `vmassign-dev` project in GCP and the Service Account and the WIF mentioned above are required under that project.
 
 ## Dependencies
 
