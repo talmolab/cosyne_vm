@@ -54,8 +54,35 @@ For more information, read the [documentation for Google Auth](https://github.co
   ```
 
 4. Create a new Service Account specifically for GitHub Actions Testing Workflow.
+   ```bash
+    gcloud iam service-accounts create github-actions-testing \
+      --description="SA for GitHub Actions Testing Workflow" \
+      --display-name="GitHub Actions Testing" \
+      --project="vmassign-dev"
+   ```
 
-4. Associate the Service Account with the Workload Identity Pool Provider:
+   Give the Service Account the required roles:
+   ```bash
+    gcloud projects add-iam-policy-binding vmassign-dev \
+      --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+      --role="roles/spanner.admin"
+    ```
+
+    To authenticate the Service Account using Workload Identity Federation, the Service Account needs the `roles/iam.serviceAccountUser` and `roles/iam.workloadIdentityUser` roles.
+    To create a Spanner Database using Terraform, the Service Account needs the `roles/spanner.admin` role.
+    ```bash
+    gcloud projects add-iam-policy-binding vmassign-dev \
+      --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+      --role="roles/iam.serviceAccountUser"
+    ```
+
+    ```bash
+    gcloud projects add-iam-policy-binding vmassign-dev \
+      --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
+      --role="roles/iam.workloadIdentityUser"
+    ```
+
+5. Associate the Service Account with the Workload Identity Pool Provider:
   ```bash
   gcloud iam service-accounts add-iam-policy-binding "github-actions-testing@${PROJECT_ID}.iam.gserviceaccount.com" \
     --project="${PROJECT_ID}" \
