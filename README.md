@@ -62,6 +62,8 @@ For more information, read the [documentation for Google Auth](https://github.co
    ```
 
    Give the Service Account the required roles:
+
+   To create a Spanner Database using Terraform, the Service Account needs the `roles/spanner.admin` role.
    ```bash
     gcloud projects add-iam-policy-binding vmassign-dev \
       --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
@@ -69,7 +71,7 @@ For more information, read the [documentation for Google Auth](https://github.co
     ```
 
     To authenticate the Service Account using Workload Identity Federation, the Service Account needs the `roles/iam.serviceAccountUser` and `roles/iam.workloadIdentityUser` roles.
-    To create a Spanner Database using Terraform, the Service Account needs the `roles/spanner.admin` role.
+    
     ```bash
     gcloud projects add-iam-policy-binding vmassign-dev \
       --member="serviceAccount:github-actions-testing@vmassign-dev.iam.gserviceaccount.com" \
