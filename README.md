@@ -10,11 +10,60 @@ This repository stores the scripts that are locally available on every VM instan
       - `roles/iam.serviceAccountUser`
       - `roles/iam.serviceAccountTokenCreator`
       - `roles/spanner.admin`
-    - The name of the service account must be "github-actions-testing"
+    - The name of the Service Account must be "github-actions-testing" in order to match the Service Account name in the GitHub Actions workflow.
+
 2. A Workload Identity Federation (WIF) in GCP.
     - The Workload Identity Federation should be created in the `vmassign-dev` project.
-    - The Workload Identity Federation should be associated with the Service Account created in the prereq. 1.
+    - The Workload Identity Federation should be associated with the Service Account created in the prerequisite above.
+
 3. It requires `vmassign-dev` project in GCP and the Service Account and the WIF mentioned above are required under that project.
+
+> Note: Workload Identity Federation (WIF) is used in this workflow because this does not require a service account key to be stored in the repository. Instead, the service account is associated with the WIF and the WIF is used to authenticate the service account. This is a more secure way to authenticate the service account.
+
+For more information, read the [documentation for Google Auth](https://github.com/google-github-actions/auth)
+
+## Steps to Test the Workflow
+1. Run the following command to setup the WIF in the `vmassign-dev` project. First, create the Workload Identity Pool:
+  ```bash
+  gcloud iam workload-identity-pools create "github-actions" \
+    --project="${PROJECT_ID}" \
+    --location="global" \
+    --display-name="GitHub Actions Pool"
+  ```
+
+  Note: `${PROJECT_ID}` is the project ID of the `vmassign-dev` project.
+
+  Run the following command to check the full name of the Workload Identity Pool:
+  ```bash
+  gcloud iam workload-identity-pools describe "github-actions" \
+    --project="${PROJECT_ID}" \
+    --location="global" \
+    --format="value(name)"
+  ```
+
+2. Create the Workload Identity Pool Provider:
+  ```bash
+  gcloud iam workload-identity-pools providers create-oidc "my-repo" \
+    --project="${PROJECT_ID}" \
+    --location="global" \
+    --workload-identity-pool="github" \
+    --display-name="My GitHub repo Provider" \
+    --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+    --attribute-condition="assertion.repository_owner == '${GITHUB_ORG}'" \
+    --issuer-uri="https://token.actions.githubusercontent.com"
+  ```
+
+4. Create a new Service Account specifically for GitHub Actions Testing Workflow.
+
+4. Associate the Service Account with the Workload Identity Pool Provider:
+  ```bash
+  gcloud iam service-accounts add-iam-policy-binding "github-actions-testing@${PROJECT_ID}.iam.gserviceaccount.com" \
+    --project="${PROJECT_ID}" \
+    --role="roles/iam.workloadIdentityUser" \
+    --member="principalSet://iam.googleapis.com/${WORKLOAD_IDENTITY_POOL_ID}/attribute.repository/${REPO}"
+  ```
+
+## Testing Workflow
 
 ## Dependencies
 
