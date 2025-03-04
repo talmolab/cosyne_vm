@@ -22,7 +22,7 @@ This repository stores the scripts that are locally available on every VM instan
 
 For more information, read the [documentation for Google Auth](https://github.com/google-github-actions/auth)
 
-## Steps to Test the Workflow
+## Steps to Take Before Testing the Workflow
 1. Run the following command to setup the WIF in the `vmassign-dev` project. First, create the Workload Identity Pool:
   ```bash
   gcloud iam workload-identity-pools create "github-actions" \
@@ -93,6 +93,16 @@ For more information, read the [documentation for Google Auth](https://github.co
   ```
 
 ## Testing Workflow
+
+The workflow is triggered when a pull request is opened or updated. The workflow runs the following steps:
+1. Checkout the repository.
+2. Authenticate with Google Cloud using Workload Identity Federation.
+3. Install Terraform.
+4. Initialize Terraform.
+5. Plan the Terraform changes.
+6. Apply the Terraform changes to create the temporary database for testing in GCP under `vmassign-dev`. 
+7. Run Pytest codes under `./tests` directory.
+8. Destroy the temporary database after the tests are completed.
 
 ## Dependencies
 
